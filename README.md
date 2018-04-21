@@ -1,2 +1,2 @@
-# passwordhashingservice
-A password hashing REST microservice written in Go.
+# Password Hashing Microservice
+A basic password hashing microservice written in Go.
