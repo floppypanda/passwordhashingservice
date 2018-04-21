@@ -54,7 +54,8 @@ sudo docker build -t pwdhashservice .
 sudo docker run --publish [PORT]:8080 --name pwdhashservice --rm pwdhashservice
 ```
 Where PORT represents the port that the Docker container will expose so that the underlying server can listen for and respond to connections.  
-If you would like to terminate the container simply executed the following command:
+  
+If you would like to terminate the container simply execute the following command:
 ```
 docker stop pwdhashservice
 ```
