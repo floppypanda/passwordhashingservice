@@ -47,3 +47,14 @@ curl http://localhost:8080/hash?password=mojojojo # Password hashing.
 curl http://localhost:8080/stats                  # Server statistics.
 curl http://localhost:8080/shutdown               # Remote shutdown.
 ```
+## Deploying with Docker
+This project can be deployed and ran using Docker by executing the following commands in the project root directory:
+```
+sudo docker build -t pwdhashservice .
+sudo docker run --publish [PORT]:8080 --name pwdhashservice --rm pwdhashservice
+```
+Where PORT represents the port that the Docker container will expose so that the underlying server can listen for and respond to connections.  
+If you would like to terminate the container simply executed the following command:
+```
+docker stop pwdhashservice
+```
