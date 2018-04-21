@@ -40,3 +40,10 @@ Or by explicity specifying the pwdhashservice package:
 ```
 go test -v pwdhashservice
 ```
+## Running Manual Tests
+If you would like to run some manual tests, and you have the program curl installed the following are some commands that demonstrated various capabilities of the server:
+```
+curl http://localhost:8080/hash?password=mojojojo # Password hashing.
+curl http://localhost:8080/stats                  # Server statistics.
+curl http://localhost:8080/shutdown               # Remote shutdown.
+```
