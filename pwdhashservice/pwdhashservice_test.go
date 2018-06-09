@@ -19,7 +19,7 @@ func TestGetSha512HashString(t *testing.T) {
             t.Fail()
         }
     })
-    t.Run("TestSingleWord", func(t *testing.T) { 
+    t.Run("TestSingleWord", func(t *testing.T) {
         hash := getSha512HashString([]byte("mermaids"))
         if (hash != "HS3xurF1BDcLu6hXBIWVNYJdMgPHCFM5YhoBMIykGnJPLKtc0swk2ejymYVvgW5Zx_YfI2irzUIZpo5nMMSeXQ==") {
             t.Logf("Computed Hash: %s", hash)
@@ -30,14 +30,14 @@ func TestGetSha512HashString(t *testing.T) {
         hash := getSha512HashString([]byte("Sphinx of black quartz, judge my vow"))
         if (hash != "hxA90B0zF1pSFAmr-SnTdQPf9sA7zoxveSIdzLxNbLhooGX0vYhtwzPAkmY3pQHOypy4dd5Z0FH-_o1AXDbPNQ==") {
             t.Logf("Computed Hash: %s", hash)
-            t.Fail()   
+            t.Fail()
         }
     })
     t.Run("TestComplex", func(t *testing.T) {
         hash := getSha512HashString([]byte("cax@qnGic(4tgq)r5"))
         if (hash != "kmYWg5BUcs06Ue2mSJtU0rEDnSuSm9F_kac4k5fB2uwy6n0w6v-oQ1MK4AU2AiC4VqBUnKgLWzTzpByLGPIfoA==") {
             t.Logf("Computed Hash: %s", hash)
-            t.Fail()   
+            t.Fail()
         }
     })
 }
@@ -67,19 +67,19 @@ func TestGetAverageHashingTimeInMillis(t *testing.T) {
 func TestGetJsonStats(t *testing.T) {
     t.Run("TestJsonConversion", func(t *testing.T) {
         phs := &PwdHashServer{logger : log.New(os.Stdout, "passwordhashingservice: ", log.LstdFlags)}
-        json := getJsonStats(phs, 30, 2000)
+        json := phs.getJsonStats(30, 2000)
         if json != "{\"average\":2000,\"total\":30}" {
             t.Logf("Converted JSON: %s", json)
             t.Fail()
-        }           
+        }
     })
 }
 
-//Tests incrementWorkingThreads(phs *PwdHashServer) 
+//Tests incrementWorkingThreads(phs *PwdHashServer)
 func TestIncrementWorkingThreads(t *testing.T) {
     phs := NewPasswordHashingServer(":8080")
     prevNumWorkingThreads := phs.threadInfo.numWorkingThreads
-    incrementWorkingThreads(phs)
+    phs.incrementWorkingThreads()
     currNumWorkingThreads := phs.threadInfo.numWorkingThreads
     difference := currNumWorkingThreads - prevNumWorkingThreads
     if difference != 1 {
@@ -92,7 +92,7 @@ func TestIncrementWorkingThreads(t *testing.T) {
 func TestIncrementTotalHashed(t *testing.T) {
     phs := NewPasswordHashingServer(":8080")
     prevTotalHashed := phs.hashStats.totalHashed
-    incrementTotalHashed(phs)
+    phs.incrementTotalHashed()
     currTotalHashed := phs.hashStats.totalHashed
     difference := currTotalHashed - prevTotalHashed
     if difference != 1 {
@@ -105,7 +105,7 @@ func TestIncrementTotalHashed(t *testing.T) {
 func TestIncreaseTotalHashingTime(t *testing.T) {
     phs := NewPasswordHashingServer(":8080")
     prevTotalHashingTime := phs.hashStats.totalHashingTime
-    increaseTotalHashingTime(phs, 5000 * time.Millisecond)
+    phs.increaseTotalHashingTime(5000 * time.Millisecond)
     currTotalHashingTime := phs.hashStats.totalHashingTime
     difference := currTotalHashingTime - prevTotalHashingTime
     if difference != 5000 {
@@ -118,7 +118,7 @@ func TestIncreaseTotalHashingTime(t *testing.T) {
 func TestDecrementWorkingThreads(t *testing.T) {
     phs := NewPasswordHashingServer(":8080")
     prevNumWorkingThreads := phs.threadInfo.numWorkingThreads
-    decrementWorkingThreads(phs)
+    phs.decrementWorkingThreads()
     currNumWorkingThreads := phs.threadInfo.numWorkingThreads
     difference := currNumWorkingThreads - prevNumWorkingThreads
     if difference != -1 {
@@ -152,7 +152,7 @@ func logResponseInfo(test *testing.T, response *httptest.ResponseRecorder, respo
 //Tests handler returned by getHashingHandler(phs *PwdHashServer) http.HandlerFunc
 func TestHashingHandler(t *testing.T) {
     phs := NewPasswordHashingServer(":8080")
-    hashingHandler := getHashingHandler(phs)
+    hashingHandler := phs.getHashingHandler()
     request, _ := http.NewRequest("GET", "/hash?password=dolphins", nil)
     response := httptest.NewRecorder()
     hashingHandler(response, request)
@@ -164,7 +164,7 @@ func TestHashingHandler(t *testing.T) {
 //Tests handler returned by getStatsHandler(phs *PwdHashServer) http.HandlerFunc
 func TestStatsHandler(t *testing.T) {
     phs := NewPasswordHashingServer(":8080")
-    statsHandler := getStatsHandler(phs)
+    statsHandler := phs.getStatsHandler()
     request, _ := http.NewRequest("GET", "/stats", nil)
     response := httptest.NewRecorder()
     statsHandler(response, request)
@@ -176,7 +176,7 @@ func TestStatsHandler(t *testing.T) {
 //Tests handler returned by getShutdownHandler(phs *PwdHashServer) http.HandlerFunc
 func TestShutdownHandler(t *testing.T) {
     phs := NewPasswordHashingServer(":8080")
-    shutdownHandler := getShutdownHandler(phs)
+    shutdownHandler := phs.getShutdownHandler()
     request, _ := http.NewRequest("GET", "/shutdown", nil)
     response := httptest.NewRecorder()
     t.Run("TestShutdownInProgress", func(t *testing.T) {
