@@ -88,11 +88,11 @@ func TestIncrementWorkingThreads(t *testing.T) {
     }
 }
 
-//Tests incrementTotalHashed(phs *PwdHashServer)
-func TestIncrementTotalHashed(t *testing.T) {
+//Tests updateHashingStats(numHashed int64, additionalTime time.Duration)
+func TestTotalHashedIncrease(t *testing.T) {
     phs := NewPasswordHashingServer(":8080")
     prevTotalHashed := phs.hashStats.totalHashed
-    phs.incrementTotalHashed()
+    phs.updateHashingStats(1, time.Since(time.Now()))
     currTotalHashed := phs.hashStats.totalHashed
     difference := currTotalHashed - prevTotalHashed
     if difference != 1 {
@@ -101,11 +101,11 @@ func TestIncrementTotalHashed(t *testing.T) {
     }
 }
 
-//Tests increaseTotalHashingTime(phs *PwdHashServer, additionalTime time.Duration)
-func TestIncreaseTotalHashingTime(t *testing.T) {
+//Tests updateHashingStats(numHashed int64, additionalTime time.Duration)
+func TestTotalHashingTimeIncrease(t *testing.T) {
     phs := NewPasswordHashingServer(":8080")
     prevTotalHashingTime := phs.hashStats.totalHashingTime
-    phs.increaseTotalHashingTime(5000 * time.Millisecond)
+    phs.updateHashingStats(0, 5000 * time.Millisecond)
     currTotalHashingTime := phs.hashStats.totalHashingTime
     difference := currTotalHashingTime - prevTotalHashingTime
     if difference != 5000 {
