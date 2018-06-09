@@ -63,7 +63,7 @@ func TestGetAverageHashingTimeInMillis(t *testing.T) {
     })
 }
 
-//Tests getJsonStats(phs *PwdHashServer, totalHashed int64, averageHashingTime int64) string
+//Tests pwdhashservice.getJsonStats(totalHashed int64, averageHashingTime int64) string
 func TestGetJsonStats(t *testing.T) {
     t.Run("TestJsonConversion", func(t *testing.T) {
         phs := &PwdHashServer{logger : log.New(os.Stdout, "passwordhashingservice: ", log.LstdFlags)}
@@ -75,7 +75,7 @@ func TestGetJsonStats(t *testing.T) {
     })
 }
 
-//Tests incrementWorkingThreads(phs *PwdHashServer)
+//Tests pwdhashservice.incrementWorkingThreads()
 func TestIncrementWorkingThreads(t *testing.T) {
     phs := NewPasswordHashingServer(":8080")
     prevNumWorkingThreads := phs.threadInfo.numWorkingThreads
@@ -88,7 +88,7 @@ func TestIncrementWorkingThreads(t *testing.T) {
     }
 }
 
-//Tests updateHashingStats(numHashed int64, additionalTime time.Duration)
+//Tests pwdhashservice.updateHashingStats(numHashed int64, additionalTime time.Duration)
 func TestTotalHashedIncrease(t *testing.T) {
     phs := NewPasswordHashingServer(":8080")
     prevTotalHashed := phs.hashStats.totalHashed
@@ -101,7 +101,7 @@ func TestTotalHashedIncrease(t *testing.T) {
     }
 }
 
-//Tests updateHashingStats(numHashed int64, additionalTime time.Duration)
+//Tests pwdhashservice.updateHashingStats(numHashed int64, additionalTime time.Duration)
 func TestTotalHashingTimeIncrease(t *testing.T) {
     phs := NewPasswordHashingServer(":8080")
     prevTotalHashingTime := phs.hashStats.totalHashingTime
@@ -114,7 +114,7 @@ func TestTotalHashingTimeIncrease(t *testing.T) {
     }
 }
 
-//Tests decrementWorkingThreads(phs *PwdHashServer)
+//Tests pwdhashservice.decrementWorkingThreads()
 func TestDecrementWorkingThreads(t *testing.T) {
     phs := NewPasswordHashingServer(":8080")
     prevNumWorkingThreads := phs.threadInfo.numWorkingThreads
@@ -149,7 +149,7 @@ func logResponseInfo(test *testing.T, response *httptest.ResponseRecorder, respo
     test.Logf("Response Body: %s", string(responseBody))
 }
 
-//Tests handler returned by getHashingHandler(phs *PwdHashServer) http.HandlerFunc
+//Tests handler returned by pwdhashservice.getHashingHandler() http.HandlerFunc
 func TestHashingHandler(t *testing.T) {
     phs := NewPasswordHashingServer(":8080")
     hashingHandler := phs.getHashingHandler()
@@ -161,7 +161,7 @@ func TestHashingHandler(t *testing.T) {
     failOnIncorrectResponse(t, response, err, string(responseBody), correctResponseBody)
 }
 
-//Tests handler returned by getStatsHandler(phs *PwdHashServer) http.HandlerFunc
+//Tests handler returned by pwdhashservice.getStatsHandler() http.HandlerFunc
 func TestStatsHandler(t *testing.T) {
     phs := NewPasswordHashingServer(":8080")
     statsHandler := phs.getStatsHandler()
@@ -173,7 +173,7 @@ func TestStatsHandler(t *testing.T) {
     failOnIncorrectResponse(t, response, err, string(responseBody), correctResponseBody)
 }
 
-//Tests handler returned by getShutdownHandler(phs *PwdHashServer) http.HandlerFunc
+//Tests handler returned by pwdhashservice.getShutdownHandler() http.HandlerFunc
 func TestShutdownHandler(t *testing.T) {
     phs := NewPasswordHashingServer(":8080")
     shutdownHandler := phs.getShutdownHandler()
