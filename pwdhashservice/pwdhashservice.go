@@ -40,7 +40,7 @@ type PwdHashServer struct {
 func NewPasswordHashingServer(addr string) *PwdHashServer {
     pwdHashingServer := &PwdHashServer{}
     pwdHashingServer.logger = log.New(os.Stdout, "passwordhashingservice: ", log.LstdFlags)
-    pwdHashingServer.httpServer = getHttpServer(pwdHashingServer, addr)
+    pwdHashingServer.httpServer = pwdHashingServer.getHttpServer(addr)
     pwdHashingServer.hashStats = &hashingStats{totalHashed : 0, totalHashingTime : 0, totalHashedMutex : sync.Mutex{}, totalHashingTimeMutex : sync.Mutex{}}
     pwdHashingServer.threadInfo = &threadingInfo{numWorkingThreads : 0, numWorkingThreadsMutex : sync.Mutex{}}
     pwdHashingServer.shutdownInProgress = false
@@ -48,46 +48,46 @@ func NewPasswordHashingServer(addr string) *PwdHashServer {
 }
 
 //Builds and returns an HTTP server instance.
-func getHttpServer(phs *PwdHashServer, addr string) *http.Server {
+func (phs *PwdHashServer) getHttpServer(addr string) *http.Server {
     server := &http.Server {
         Addr:    addr,
         ErrorLog: phs.logger,
     }
-    server.Handler = getServerMux(phs)
+    server.Handler = phs.getServerMux()
     return server
 }
 
 //Builds and returns the server multiplexer for handlers.
-func getServerMux(phs *PwdHashServer) *http.ServeMux {
+func (phs *PwdHashServer) getServerMux() *http.ServeMux {
     serveMux := http.NewServeMux()
-    serveMux.Handle("/hash", getHashingHandler(phs))
-    serveMux.Handle("/shutdown", getShutdownHandler(phs))
-    serveMux.Handle("/stats", getStatsHandler(phs))
+    serveMux.Handle("/hash", phs.getHashingHandler())
+    serveMux.Handle("/shutdown", phs.getShutdownHandler())
+    serveMux.Handle("/stats", phs.getStatsHandler())
     return serveMux
 }
 
 //Builds and returns the hashing handler.
-func getHashingHandler(phs *PwdHashServer) http.HandlerFunc {
+func (phs *PwdHashServer) getHashingHandler() http.HandlerFunc {
     return http.HandlerFunc(func (responseWriter http.ResponseWriter, request *http.Request) {
         if phs.shutdownInProgress {
             return
         }
-        incrementWorkingThreads(phs)
+        phs.incrementWorkingThreads()
         startTime := time.Now()
         time.Sleep(5 * time.Second)
         password := request.URL.Query().Get("password")
         hash := getSha512HashString([]byte(password))
         fmt.Fprintf(responseWriter, "%s", hash)
-        incrementTotalHashed(phs)
+        phs.incrementTotalHashed()
         elapsedTime := time.Since(startTime)
-        increaseTotalHashingTime(phs, elapsedTime)
+        phs.increaseTotalHashingTime(elapsedTime)
         phs.logger.Printf("Hashed password \"%s\" into \"%s\".", password, hash)
-        decrementWorkingThreads(phs)
+        phs.decrementWorkingThreads()
     })
 }
 
 //Increments the number of working threads.
-func incrementWorkingThreads(phs *PwdHashServer) {
+func (phs *PwdHashServer) incrementWorkingThreads() {
     phs.threadInfo.numWorkingThreadsMutex.Lock()
     phs.threadInfo.numWorkingThreads += 1
     phs.threadInfo.numWorkingThreadsMutex.Unlock()
@@ -102,33 +102,33 @@ func getSha512HashString(bytes []byte) string {
 }
 
 //Increments the count of total hashings.
-func incrementTotalHashed(phs *PwdHashServer) {
+func (phs *PwdHashServer) incrementTotalHashed() {
     phs.hashStats.totalHashedMutex.Lock()
     phs.hashStats.totalHashed += 1
     phs.hashStats.totalHashedMutex.Unlock()
 }
 
 //Increases the total time spent hashing by the provided duration.
-func increaseTotalHashingTime(phs *PwdHashServer, additionalTime time.Duration) {
+func (phs *PwdHashServer) increaseTotalHashingTime(additionalTime time.Duration) {
     phs.hashStats.totalHashingTimeMutex.Lock()
     phs.hashStats.totalHashingTime += int64(additionalTime/time.Millisecond)
     phs.hashStats.totalHashingTimeMutex.Unlock()
 }
 
 //Decrements the number of working threads.
-func decrementWorkingThreads(phs *PwdHashServer) {
+func (phs *PwdHashServer) decrementWorkingThreads() {
     phs.threadInfo.numWorkingThreadsMutex.Lock()
     phs.threadInfo.numWorkingThreads -= 1
     phs.threadInfo.numWorkingThreadsMutex.Unlock()
 }
 
 //Builds and returns the shutdown handler.
-func getShutdownHandler(phs *PwdHashServer) http.HandlerFunc {
+func (phs *PwdHashServer) getShutdownHandler() http.HandlerFunc {
     return http.HandlerFunc(func (responseWriter http.ResponseWriter, request *http.Request) {
         if !phs.shutdownInProgress {
             phs.shutdownInProgress = true
             phs.logger.Print("Shutting down server...")
-            waitForWorkingThreads(phs)
+            phs.waitForWorkingThreads()
             if err := phs.httpServer.Shutdown(context.Background()); err != nil {
                 fmt.Fprint(responseWriter, "Unable to shutdown server.")
                 phs.logger.Fatalf("ERROR: Unable to gracefully shutdown server:\n %v\n", err)
@@ -140,26 +140,26 @@ func getShutdownHandler(phs *PwdHashServer) http.HandlerFunc {
 }
 
 //Waits for threads corresponding to in progress connections to complete.
-func waitForWorkingThreads(phs *PwdHashServer) {
+func (phs *PwdHashServer) waitForWorkingThreads() {
     for phs.threadInfo.numWorkingThreads > 0 {
     }
 }
 
 //Builds and returns the statistics handler.
-func getStatsHandler(phs *PwdHashServer) http.HandlerFunc {
+func (phs *PwdHashServer) getStatsHandler() http.HandlerFunc {
     return http.HandlerFunc(func (responseWriter http.ResponseWriter, request *http.Request) {
         if phs.shutdownInProgress {
             return
         }
-        incrementWorkingThreads(phs)
+        phs.incrementWorkingThreads()
         phs.hashStats.totalHashedMutex.Lock()
         phs.hashStats.totalHashingTimeMutex.Lock()
-        jsonStats := getJsonStats(phs, phs.hashStats.totalHashed, getAverageHashingTimeInMillis(phs.hashStats.totalHashed, phs.hashStats.totalHashingTime))
+        jsonStats := phs.getJsonStats(phs.hashStats.totalHashed, getAverageHashingTimeInMillis(phs.hashStats.totalHashed, phs.hashStats.totalHashingTime))
         fmt.Fprintf(responseWriter, jsonStats)
         phs.hashStats.totalHashedMutex.Unlock()
         phs.hashStats.totalHashingTimeMutex.Unlock()
         phs.logger.Printf("Returned the following server statistics: %s", jsonStats)
-        decrementWorkingThreads(phs)
+        phs.decrementWorkingThreads()
     })
 }
 
@@ -172,7 +172,7 @@ func getAverageHashingTimeInMillis(totalHashed int64, totalHashingTime int64) in
 }
 
 //Creates a string in JSON format using server statistics.
-func getJsonStats(phs *PwdHashServer, totalHashed int64, averageHashingTime int64) string {
+func (phs *PwdHashServer) getJsonStats(totalHashed int64, averageHashingTime int64) string {
     statsMap := map[string]int64 {"total" : totalHashed, "average" : averageHashingTime}
     jsonStatsMap, err := json.Marshal(statsMap)
     if err != nil {
@@ -182,7 +182,7 @@ func getJsonStats(phs *PwdHashServer, totalHashed int64, averageHashingTime int6
 }
 
 //Starts the server.
-func StartServer(phs *PwdHashServer) {
+func (phs *PwdHashServer) StartServer() {
     phs.logger.Print("Starting server...")
     phs.logger.Fatal(phs.httpServer.ListenAndServe())
 }
