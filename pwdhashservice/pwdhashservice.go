@@ -38,13 +38,13 @@ type PwdHashServer struct {
 
 //Builds and returns a server instance.
 func NewPasswordHashingServer(addr string) *PwdHashServer {
-    pwdHashingServer := &PwdHashServer{}
-    pwdHashingServer.logger = log.New(os.Stdout, "passwordhashingservice: ", log.LstdFlags)
-    pwdHashingServer.httpServer = pwdHashingServer.getHttpServer(addr)
-    pwdHashingServer.hashStats = &hashingStats{totalHashed : 0, totalHashingTime : 0, totalHashedMutex : sync.Mutex{}, totalHashingTimeMutex : sync.Mutex{}}
-    pwdHashingServer.threadInfo = &threadingInfo{numWorkingThreads : 0, numWorkingThreadsMutex : sync.Mutex{}}
-    pwdHashingServer.shutdownInProgress = false
-    return pwdHashingServer
+    phs := &PwdHashServer{}
+    phs.logger = log.New(os.Stdout, "passwordhashingservice: ", log.LstdFlags)
+    phs.httpServer = phs.getHttpServer(addr)
+    phs.hashStats = &hashingStats{totalHashed : 0, totalHashingTime : 0, totalHashedMutex : sync.Mutex{}, totalHashingTimeMutex : sync.Mutex{}}
+    phs.threadInfo = &threadingInfo{numWorkingThreads : 0, numWorkingThreadsMutex : sync.Mutex{}}
+    phs.shutdownInProgress = false
+    return phs
 }
 
 //Builds and returns an HTTP server instance.
